@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retirar Item — Controle de Patrimônios</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <header class="public-header">
+        <div class="logo"><i class="fas fa-boxes-stacked"></i> Controle de Patrimônios</div>
+        <nav>
+            <a href="index.html">Início</a>
+            <a href="retirar.html" class="active">Retirar</a>
+            <a href="devolver.html">Devolver</a>
+            <a href="login.html">Área Admin</a>
+        </nav>
+    </header>
+
+    <div class="form-page">
+        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao início</a>
+
+        <div class="card">
+            <div style="margin-bottom:24px;">
+                <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:6px;"><i class="fas fa-upload" style="margin-right:8px; color:var(--primary)"></i> Retirar Item</h2>
+                <p style="color:var(--text-muted); font-size:.9rem;">Preencha os dados abaixo para registrar a retirada de um item do inventário.</p>
+            </div>
+
+            <form id="withdraw-form">
+                <div class="form-group">
+                    <label for="item-id">Item</label>
+                    <select id="item-id" required>
+                        <option value="">Carregando itens disponíveis...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrower-name">Seu Nome Completo</label>
+                    <input type="text" id="borrower-name" placeholder="Ex: João Silva" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="borrower-nif">NIF</label>
+                    <input type="text" id="borrower-nif" placeholder="9 dígitos numéricos" required maxlength="9" pattern="\d{9}">
+                </div>
+
+                <div class="form-group">
+                    <label for="quantity">Quantidade</label>
+                    <input type="number" id="quantity" placeholder="Ex: 1" required min="1">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;" id="submit-btn">
+                    <i class="fas fa-check-circle" style="margin-right:8px;"></i> Registrar Retirada
+                </button>
+            </form>
+        </div>
+
+        <!-- Confirmation -->
+        <div id="success-card" class="card" style="display:none; margin-top:20px; border:2px solid var(--success); text-align:center; padding:40px;">
+            <div style="font-size:3rem; margin-bottom:12px; color:var(--success)"><i class="fas fa-circle-check"></i></div>
+            <h3 style="font-size:1.2rem; font-weight:700; color:var(--success); margin-bottom:8px;">Retirada Registrada!</h3>
+            <p id="success-msg" style="color:var(--text-muted); font-size:.9rem; margin-bottom:20px;"></p>
+            <button class="btn btn-ghost btn-sm" onclick="resetForm()"><i class="fas fa-plus"></i> Registrar outra retirada</button>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="js/config.js"></script>
+    <script src="js/withdraw.js"></script>
+</body>
+</html>

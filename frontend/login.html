@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — Controle de Patrimônios</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="logo-icon"><i class="fas fa-lock"></i></div>
+                <h1>Controle de Patrimônios</h1>
+                <p>Acesso administrativo</p>
+            </div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Usuário</label>
+                    <input type="text" id="username" placeholder="Digite seu usuário" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Digite sua senha" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;" id="login-btn">
+                    <i class="fas fa-right-to-bracket" style="margin-right:8px;"></i> Entrar
+                </button>
+            </form>
+            <div style="text-align:center; margin-top:20px;">
+                <a href="index.html" style="color:var(--text-muted); font-size:.85rem;"><i class="fas fa-arrow-left"></i> Voltar ao início</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="js/config.js"></script>
+    <script>
+        // If already logged in, redirect to admin
+        if (getToken()) window.location.href = 'admin/items.html';
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.innerText = 'Entrando...';
+
+            try {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: document.getElementById('username').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'admin/items.html';
+                } else {
+                    toast(data.error || 'Credenciais inválidas', 'error');
+                    btn.disabled = false;
+                    btn.innerText = 'Entrar';
+                }
+            } catch {
+                toast('Erro de conexão com o servidor', 'error');
+                btn.disabled = false;
+                btn.innerText = 'Entrar';
+            }
+        });
+    </script>
+</body>
+</html>

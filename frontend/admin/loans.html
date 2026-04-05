@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Empréstimos — Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="sidebar-logo"><i class="fas fa-boxes-stacked"></i> <span>Patrimônios</span></div>
+            <nav class="sidebar-nav">
+                <a href="items.html">
+                    <span class="icon"><i class="fas fa-box-archive"></i></span> Inventário
+                </a>
+                <a href="loans.html" class="active">
+                    <span class="icon"><i class="fas fa-handshake"></i></span> Empréstimos
+                </a>
+                <a href="../index.html">
+                    <span class="icon"><i class="fas fa-globe"></i></span> Portal Público
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button onclick="logout()"><i class="fas fa-right-from-bracket"></i> Sair</button>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="admin-main">
+            <div class="admin-topbar">
+                <h1>Histórico de Empréstimos</h1>
+                <span class="user-tag"><i class="fas fa-user-shield"></i> Administrador</span>
+            </div>
+
+            <div class="admin-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-file-lines"></i></div>
+                        <div class="stat-label">Total de Empréstimos</div>
+                        <div class="stat-value" id="stat-total">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color:var(--danger)"><i class="fas fa-clock"></i></div>
+                        <div class="stat-label">Em Aberto</div>
+                        <div class="stat-value" id="stat-open" style="color:var(--danger)">—</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color:var(--success)"><i class="fas fa-circle-check"></i></div>
+                        <div class="stat-label">Encerrados</div>
+                        <div class="stat-value" id="stat-closed" style="color:var(--success)">—</div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="section-bar">
+                    <span class="section-title">Registros</span>
+                    <div class="filter-bar">
+                        <div class="form-group">
+                            <label>Nome do Tomador</label>
+                            <input type="text" id="filter-name" placeholder="Buscar por nome...">
+                        </div>
+                        <div class="form-group">
+                            <label>Item</label>
+                            <input type="text" id="filter-item" placeholder="Nome do item...">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="filter-status">
+                                <option value="">Todos</option>
+                                <option value="open">Em Aberto</option>
+                                <option value="closed">Encerrados</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button class="btn btn-primary btn-sm" onclick="loadLoans()"><i class="fas fa-search"></i> Filtrar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Tomador</th>
+                                <th>NIF</th>
+                                <th>Data Retirada</th>
+                                <th>Qtd. Retirada</th>
+                                <th>Qtd. Devolvida</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loans-list">
+                            <tr><td colspan="7" class="empty-state">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="loans-pagination" class="pagination"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <script src="../js/config.js"></script>
+    <script src="../js/admin-loans.js"></script>
+</body>
+</html>
