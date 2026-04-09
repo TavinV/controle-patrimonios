@@ -7,63 +7,136 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
-    <header class="public-header">
+<body class="kiosk-body">
+
+    <!-- Fixed top bar for kiosk -->
+    <header class="kiosk-header">
         <div class="logo"><i class="fas fa-boxes-stacked"></i> Controle de Patrimônios</div>
-        <nav>
-            <a href="index.html">Início</a>
-            <a href="retirar.html" class="active">Retirar</a>
-            <a href="devolver.html">Devolver</a>
-            <a href="login.html">Área Admin</a>
-        </nav>
+        <a href="index.html" class="kiosk-home-btn"><i class="fas fa-house"></i></a>
     </header>
 
-    <div class="form-page">
-        <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Voltar ao início</a>
+    <main class="kiosk-main">
 
-        <div class="card">
-            <div style="margin-bottom:24px;">
-                <h2 style="font-size:1.4rem; font-weight:800; margin-bottom:6px;"><i class="fas fa-upload" style="margin-right:8px; color:var(--primary)"></i> Retirar Item</h2>
-                <p style="color:var(--text-muted); font-size:.9rem;">Preencha os dados abaixo para registrar a retirada de um item do inventário.</p>
+        <!-- STEP INDICATOR -->
+        <div class="kiosk-steps" id="step-indicator">
+            <div class="kstep active" id="kstep-1"><span class="kstep-num">1</span><span class="kstep-label">NIF</span></div>
+            <div class="kstep-line"></div>
+            <div class="kstep" id="kstep-2"><span class="kstep-num">2</span><span class="kstep-label">Item</span></div>
+            <div class="kstep-line"></div>
+            <div class="kstep" id="kstep-3"><span class="kstep-num">3</span><span class="kstep-label">Confirmar</span></div>
+        </div>
+
+        <!-- STEP 1: NIF -->
+        <section class="kiosk-step-panel" id="step-1">
+            <h2 class="kiosk-title">Introduza o seu NIF</h2>
+            <p class="kiosk-subtitle">Toque nos números para inserir o NIF de 9 dígitos</p>
+
+            <div class="nif-display" id="nif-display">
+                <span id="nif-dots">_ _ _ _ _ _ _ _ _</span>
             </div>
 
-            <form id="withdraw-form">
-                <div class="form-group">
-                    <label for="item-id">Item</label>
-                    <select id="item-id" required>
-                        <option value="">Carregando itens disponíveis...</option>
-                    </select>
-                </div>
+            <div class="numpad">
+                <button class="numpad-key" onclick="nifPress('1')">1</button>
+                <button class="numpad-key" onclick="nifPress('2')">2</button>
+                <button class="numpad-key" onclick="nifPress('3')">3</button>
+                <button class="numpad-key" onclick="nifPress('4')">4</button>
+                <button class="numpad-key" onclick="nifPress('5')">5</button>
+                <button class="numpad-key" onclick="nifPress('6')">6</button>
+                <button class="numpad-key" onclick="nifPress('7')">7</button>
+                <button class="numpad-key" onclick="nifPress('8')">8</button>
+                <button class="numpad-key" onclick="nifPress('9')">9</button>
+                <button class="numpad-key numpad-clear" onclick="nifClear()"><i class="fas fa-xmark"></i></button>
+                <button class="numpad-key" onclick="nifPress('0')">0</button>
+                <button class="numpad-key numpad-back" onclick="nifBackspace()"><i class="fas fa-delete-left"></i></button>
+            </div>
 
-                <div class="form-group">
-                    <label for="borrower-name">Seu Nome Completo</label>
-                    <input type="text" id="borrower-name" placeholder="Ex: João Silva" required>
-                </div>
+            <div id="nif-person-preview" class="kiosk-person-preview" style="display:none">
+                <i class="fas fa-circle-check" style="color:var(--success)"></i>
+                <span id="nif-person-name"></span>
+            </div>
+            <div id="nif-error" class="kiosk-error-msg" style="display:none"></div>
 
-                <div class="form-group">
-                    <label for="borrower-nif">NIF</label>
-                    <input type="text" id="borrower-nif" placeholder="9 dígitos numéricos" required maxlength="9" pattern="\d{9}">
-                </div>
+            <button class="kiosk-btn-primary" id="nif-next-btn" style="display:none" onclick="goToStep2()">
+                Continuar <i class="fas fa-arrow-right"></i>
+            </button>
+        </section>
 
-                <div class="form-group">
-                    <label for="quantity">Quantidade</label>
-                    <input type="number" id="quantity" placeholder="Ex: 1" required min="1">
-                </div>
+        <!-- STEP 2: Item selection -->
+        <section class="kiosk-step-panel" id="step-2" style="display:none">
+            <h2 class="kiosk-title">Escolha o item</h2>
+            <p class="kiosk-subtitle" id="step2-subtitle"></p>
 
-                <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;" id="submit-btn">
-                    <i class="fas fa-check-circle" style="margin-right:8px;"></i> Registrar Retirada
+            <div class="kiosk-search-bar">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="item-search" placeholder="Filtrar itens..." oninput="filterItems()" autocomplete="off">
+                <button id="search-clear-btn" class="search-clear-btn" onclick="clearSearch()" style="display:none;" title="Limpar busca"><i class="fas fa-xmark"></i></button>
+            </div>
+
+            <div class="kiosk-items-grid" id="items-grid">
+                <div class="kiosk-loading"><i class="fas fa-spinner fa-spin"></i> Carregando...</div>
+            </div>
+
+            <div class="kiosk-qty-bar" id="qty-bar" style="display:none">
+                <span class="qty-item-name" id="qty-item-name"></span>
+                <div class="qty-controls">
+                    <button class="qty-btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
+                    <span class="qty-value" id="qty-value">1</span>
+                    <button class="qty-btn" onclick="changeQty(1)"><i class="fas fa-plus"></i></button>
+                </div>
+                <button class="kiosk-btn-primary" onclick="goToStep3()">
+                    Confirmar <i class="fas fa-arrow-right"></i>
                 </button>
-            </form>
-        </div>
+            </div>
 
-        <!-- Confirmation -->
-        <div id="success-card" class="card" style="display:none; margin-top:20px; border:2px solid var(--success); text-align:center; padding:40px;">
-            <div style="font-size:3rem; margin-bottom:12px; color:var(--success)"><i class="fas fa-circle-check"></i></div>
-            <h3 style="font-size:1.2rem; font-weight:700; color:var(--success); margin-bottom:8px;">Retirada Registrada!</h3>
-            <p id="success-msg" style="color:var(--text-muted); font-size:.9rem; margin-bottom:20px;"></p>
-            <button class="btn btn-ghost btn-sm" onclick="resetForm()"><i class="fas fa-plus"></i> Registrar outra retirada</button>
-        </div>
-    </div>
+            <button class="kiosk-btn-ghost" onclick="goToStep1()">
+                <i class="fas fa-arrow-left"></i> Voltar
+            </button>
+        </section>
+
+        <!-- STEP 3: Confirmation -->
+        <section class="kiosk-step-panel" id="step-3" style="display:none">
+            <h2 class="kiosk-title">Confirmar Retirada</h2>
+
+            <div class="kiosk-summary-card">
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-user"></i> Titular</span>
+                    <span class="summary-value" id="confirm-name"></span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-id-card"></i> NIF</span>
+                    <span class="summary-value" id="confirm-nif"></span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-box"></i> Item</span>
+                    <span class="summary-value" id="confirm-item"></span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label"><i class="fas fa-hashtag"></i> Quantidade</span>
+                    <span class="summary-value" id="confirm-qty"></span>
+                </div>
+            </div>
+
+            <div class="kiosk-confirm-actions">
+                <button class="kiosk-btn-ghost" onclick="goToStep2()">
+                    <i class="fas fa-arrow-left"></i> Alterar
+                </button>
+                <button class="kiosk-btn-primary kiosk-btn-large" id="confirm-btn" onclick="submitWithdraw()">
+                    <i class="fas fa-check-circle"></i> Confirmar Retirada
+                </button>
+            </div>
+        </section>
+
+        <!-- SUCCESS SCREEN -->
+        <section class="kiosk-step-panel kiosk-success" id="step-success" style="display:none">
+            <div class="success-icon"><i class="fas fa-circle-check"></i></div>
+            <h2 class="kiosk-title">Retirada Registada!</h2>
+            <p class="kiosk-subtitle" id="success-msg"></p>
+            <button class="kiosk-btn-primary kiosk-btn-large" onclick="resetKiosk()" style="margin-top:32px;">
+                <i class="fas fa-rotate-right"></i> Nova Retirada
+            </button>
+        </section>
+
+    </main>
 
     <div id="toast" class="toast"></div>
     <script src="js/config.js"></script>

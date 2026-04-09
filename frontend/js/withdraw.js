@@ -1,84 +1,262 @@
+// ===================== STATE =====================
+let nifValue     = '';
+let personData   = null;   // { id, nif, name }
+let allItems     = [];
+let selectedItem = null;   // item object
+let selectedQty  = 1;
+
+// ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
     loadAvailableItems();
-    document.getElementById('withdraw-form').addEventListener('submit', handleWithdraw);
 });
 
-async function loadAvailableItems() {
-    try {
-        const res = await fetch(`${API_URL}/items?limit=100`);
-        const data = await res.json();
-        const select = document.getElementById('item-id');
+// ===================== STEP 1: NIF PAD =====================
+function nifPress(digit) {
+    if (nifValue.length >= 9) return;
+    nifValue += digit;
+    updateNifDisplay();
+    clearNifFeedback();
+    if (nifValue.length === 9) lookupNif();
+}
 
-        const available = data.data.filter(i => i.quantity_available > 0);
-        if (available.length === 0) {
-            select.innerHTML = '<option value="">Nenhum item disponível no momento</option>';
-            return;
-        }
+function nifBackspace() {
+    nifValue = nifValue.slice(0, -1);
+    updateNifDisplay();
+    clearNifFeedback();
+    hideNifNext();
+}
 
-        select.innerHTML = '<option value="">Selecione um item...</option>';
-        available.forEach(item => {
-            select.innerHTML += `<option value="${item.id}">${item.name} — ${item.location} (${item.quantity_available} disponíveis)</option>`;
-        });
-    } catch {
-        toast('Erro ao carregar lista de itens', 'error');
+function nifClear() {
+    nifValue = '';
+    personData = null;
+    updateNifDisplay();
+    clearNifFeedback();
+    hideNifNext();
+}
+
+function updateNifDisplay() {
+    const container = document.getElementById('nif-display');
+    container.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('span');
+        cell.className = 'nif-cell' + (i < nifValue.length ? ' nif-cell--filled' : '');
+        cell.textContent = i < nifValue.length ? nifValue[i] : '—';
+        container.appendChild(cell);
     }
 }
 
-async function handleWithdraw(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = true;
-    btn.innerText = 'Registrando...';
+async function lookupNif() {
+    try {
+        const res = await fetch(`${API_URL}/people/lookup?nif=${nifValue}`);
+        if (res.ok) {
+            const data = await res.json();
+            personData = data.data;
+            document.getElementById('nif-person-name').textContent = personData.name;
+            document.getElementById('nif-person-preview').style.display = 'flex';
+            document.getElementById('nif-next-btn').style.display = 'flex';
+            document.getElementById('nif-error').style.display = 'none';
+        } else {
+            personData = null;
+            const data = await res.json();
+            showNifError(data.error || 'NIF não registado. Contacte o administrador.');
+        }
+    } catch {
+        personData = null;
+        showNifError('Erro de ligação ao servidor.');
+    }
+}
 
-    const nif = document.getElementById('borrower-nif').value;
-    if (!/^\d{9}$/.test(nif)) {
-        toast('NIF deve conter exatamente 9 dígitos numéricos', 'error');
-        btn.disabled = false;
-        btn.innerText = '📤 Registrar Retirada';
+function showNifError(msg) {
+    const el = document.getElementById('nif-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+    document.getElementById('nif-person-preview').style.display = 'none';
+    document.getElementById('nif-next-btn').style.display = 'none';
+}
+
+function clearNifFeedback() {
+    document.getElementById('nif-error').style.display = 'none';
+    document.getElementById('nif-person-preview').style.display = 'none';
+}
+
+function hideNifNext() {
+    document.getElementById('nif-next-btn').style.display = 'none';
+}
+
+// ===================== STEP 2: ITEMS =====================
+async function loadAvailableItems() {
+    try {
+        const res  = await fetch(`${API_URL}/items?limit=100`);
+        const data = await res.json();
+        allItems   = (data.data || []).filter(i => i.quantity_available > 0);
+        renderItems(allItems);
+    } catch {
+        document.getElementById('items-grid').innerHTML =
+            '<p style="color:var(--danger); text-align:center">Erro ao carregar itens.</p>';
+    }
+}
+
+function renderItems(items) {
+    const grid = document.getElementById('items-grid');
+    if (items.length === 0) {
+        grid.innerHTML = '<div class="kiosk-empty"><i class="fas fa-box-open"></i><p>Nenhum item disponível</p></div>';
         return;
     }
+    grid.innerHTML = items.map(item => `
+        <button class="kiosk-item-card ${selectedItem && selectedItem.id === item.id ? 'selected' : ''}"
+                onclick="selectItem(${item.id})"
+                data-id="${item.id}">
+            <div class="kitem-name">${escHtml(item.name)}</div>
+            <div class="kitem-location"><i class="fas fa-location-dot"></i> ${escHtml(item.location)}</div>
+            <div class="kitem-avail"><i class="fas fa-cubes"></i> ${item.quantity_available} disponível${item.quantity_available !== 1 ? 'eis' : ''}</div>
+        </button>
+    `).join('');
+}
 
-    const body = {
-        item_id: parseInt(document.getElementById('item-id').value),
-        borrower_name: document.getElementById('borrower-name').value.trim(),
-        borrower_nif: nif,
-        quantity: parseInt(document.getElementById('quantity').value)
-    };
+function filterItems() {
+    const q = document.getElementById('item-search').value.toLowerCase();
+    const clearBtn = document.getElementById('search-clear-btn');
+    
+    // Show/hide clear button based on search text
+    if (q.length > 0) {
+        clearBtn.style.display = 'flex';
+    } else {
+        clearBtn.style.display = 'none';
+    }
+    
+    renderItems(allItems.filter(i =>
+        i.name.toLowerCase().includes(q) || (i.location || '').toLowerCase().includes(q)
+    ));
+    // Re-highlight selection after re-render
+    if (selectedItem) {
+        const card = document.querySelector(`.kiosk-item-card[data-id="${selectedItem.id}"]`);
+        if (card) card.classList.add('selected');
+    }
+}
+
+function clearSearch() {
+    document.getElementById('item-search').value = '';
+    document.getElementById('search-clear-btn').style.display = 'none';
+    renderItems(allItems);
+    if (selectedItem) {
+        const card = document.querySelector(`.kiosk-item-card[data-id="${selectedItem.id}"]`);
+        if (card) card.classList.add('selected');
+    }
+}
+
+function selectItem(id) {
+    selectedItem = allItems.find(i => i.id === id) || null;
+    selectedQty  = 1;
+
+    // Highlight card
+    document.querySelectorAll('.kiosk-item-card').forEach(c => c.classList.remove('selected'));
+    const card = document.querySelector(`.kiosk-item-card[data-id="${id}"]`);
+    if (card) card.classList.add('selected');
+
+    if (selectedItem) {
+        document.getElementById('qty-item-name').textContent = selectedItem.name;
+        document.getElementById('qty-value').textContent = selectedQty;
+        document.getElementById('qty-bar').style.display = 'flex';
+    }
+}
+
+function changeQty(delta) {
+    if (!selectedItem) return;
+    const next = selectedQty + delta;
+    if (next < 1 || next > selectedItem.quantity_available) return;
+    selectedQty = next;
+    document.getElementById('qty-value').textContent = selectedQty;
+}
+
+// ===================== NAVIGATION =====================
+function goToStep1() {
+    setStep(1);
+}
+
+function goToStep2() {
+    if (!personData) { toast('Por favor complete o NIF primeiro', 'error'); return; }
+    setStep(2);
+    document.getElementById('step2-subtitle').textContent =
+        `Olá, ${personData.name}. Selecione o item que pretende retirar.`;
+    // Reset selection
+    selectedItem = null;
+    selectedQty = 1;
+    document.getElementById('qty-bar').style.display = 'none';
+    document.getElementById('item-search').value = '';
+    renderItems(allItems);
+}
+
+function goToStep3() {
+    if (!selectedItem) { toast('Selecione um item primeiro', 'error'); return; }
+    document.getElementById('confirm-name').textContent = personData.name;
+    document.getElementById('confirm-nif').textContent  = personData.nif;
+    document.getElementById('confirm-item').textContent = `${selectedItem.name} — ${selectedItem.location}`;
+    document.getElementById('confirm-qty').textContent  = selectedQty;
+    setStep(3);
+}
+
+function setStep(n) {
+    [1, 2, 3].forEach(i => {
+        document.getElementById(`step-${i}`).style.display = i === n ? 'flex' : 'none';
+        const kstep = document.getElementById(`kstep-${i}`);
+        kstep.classList.toggle('active', i === n);
+        kstep.classList.toggle('done', i < n);
+    });
+    document.getElementById('step-success').style.display = 'none';
+}
+
+// ===================== SUBMIT =====================
+async function submitWithdraw() {
+    const btn = document.getElementById('confirm-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> A registar...';
 
     try {
         const res = await fetch(`${API_URL}/loans/withdraw`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+            body: JSON.stringify({
+                item_id: selectedItem.id,
+                borrower_name: personData.name,
+                borrower_nif: personData.nif,
+                quantity: selectedQty
+            })
         });
         const data = await res.json();
 
         if (res.ok) {
-            document.getElementById('withdraw-form').closest('.card').style.display = 'none';
-            const successCard = document.getElementById('success-card');
-            const name = document.getElementById('borrower-name').value.trim();
-            const qty = body.quantity;
-            const itemText = document.getElementById('item-id').selectedOptions[0].text.split(' —')[0];
-            document.getElementById('success-msg').innerText = `${name}, a retirada de ${qty}x "${itemText}" foi registrada com sucesso.`;
-            successCard.style.display = 'block';
+            [1, 2, 3].forEach(i => {
+                document.getElementById(`step-${i}`).style.display = 'none';
+            });
+            document.getElementById('step-indicator').style.display = 'none';
+            document.getElementById('success-msg').textContent =
+                `${personData.name}, a retirada de ${selectedQty}× "${selectedItem.name}" foi registada com sucesso.`;
+            document.getElementById('step-success').style.display = 'flex';
         } else {
-            toast(data.error || 'Erro ao registrar retirada', 'error');
+            toast(data.error || 'Erro ao registar retirada', 'error');
             btn.disabled = false;
-            btn.innerText = '📤 Registrar Retirada';
+            btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Retirada';
         }
     } catch {
-        toast('Erro de conexão com o servidor', 'error');
+        toast('Erro de ligação ao servidor', 'error');
         btn.disabled = false;
-        btn.innerText = '📤 Registrar Retirada';
+        btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirmar Retirada';
     }
 }
 
-function resetForm() {
-    document.getElementById('withdraw-form').reset();
-    document.getElementById('withdraw-form').closest('.card').style.display = 'block';
-    document.getElementById('success-card').style.display = 'none';
+// ===================== RESET =====================
+function resetKiosk() {
+    nifValue     = '';
+    personData   = null;
+    selectedItem = null;
+    selectedQty  = 1;
+    nifClear();
+    document.getElementById('step-indicator').style.display = 'flex';
+    document.getElementById('step-success').style.display   = 'none';
     loadAvailableItems();
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = false;
-    btn.innerText = '📤 Registrar Retirada';
+    setStep(1);
+}
+
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }

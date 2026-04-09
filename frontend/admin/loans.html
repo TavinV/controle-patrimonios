@@ -17,7 +17,10 @@
                     <span class="icon"><i class="fas fa-box-archive"></i></span> Inventário
                 </a>
                 <a href="loans.html" class="active">
-                    <span class="icon"><i class="fas fa-handshake"></i></span> Empréstimos
+                    <span class="icon"><i class="fas fa-handshake"></i></span> Retiradas
+                </a>
+                <a href="people.html">
+                    <span class="icon"><i class="fas fa-id-card"></i></span> Titulares NIF
                 </a>
                 <a href="../index.html">
                     <span class="icon"><i class="fas fa-globe"></i></span> Portal Público
@@ -30,8 +33,16 @@
 
         <!-- MAIN -->
         <div class="admin-main">
+            <!-- Mobile topbar -->
+            <div class="mobile-topbar" id="mobile-topbar" style="display:none">
+                <div class="mobile-logo"><i class="fas fa-boxes-stacked"></i> Patrimônios</div>
+                <button class="sidebar-hamburger" id="hamburger-btn" onclick="toggleSidebar()" aria-label="Menu">
+                    <i class="fas fa-bars" id="hamburger-icon"></i>
+                </button>
+            </div>
+
             <div class="admin-topbar">
-                <h1>Histórico de Empréstimos</h1>
+                <h1>Histórico de Retiradas</h1>
                 <span class="user-tag"><i class="fas fa-user-shield"></i> Administrador</span>
             </div>
 
@@ -40,18 +51,8 @@
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon"><i class="fas fa-file-lines"></i></div>
-                        <div class="stat-label">Total de Empréstimos</div>
+                        <div class="stat-label">Total de Retiradas</div>
                         <div class="stat-value" id="stat-total">—</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:var(--danger)"><i class="fas fa-clock"></i></div>
-                        <div class="stat-label">Em Aberto</div>
-                        <div class="stat-value" id="stat-open" style="color:var(--danger)">—</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon" style="color:var(--success)"><i class="fas fa-circle-check"></i></div>
-                        <div class="stat-label">Encerrados</div>
-                        <div class="stat-value" id="stat-closed" style="color:var(--success)">—</div>
                     </div>
                 </div>
 
@@ -60,20 +61,12 @@
                     <span class="section-title">Registros</span>
                     <div class="filter-bar">
                         <div class="form-group">
-                            <label>Nome do Tomador</label>
+                            <label>Nome do Titular</label>
                             <input type="text" id="filter-name" placeholder="Buscar por nome...">
                         </div>
                         <div class="form-group">
                             <label>Item</label>
                             <input type="text" id="filter-item" placeholder="Nome do item...">
-                        </div>
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select id="filter-status">
-                                <option value="">Todos</option>
-                                <option value="open">Em Aberto</option>
-                                <option value="closed">Encerrados</option>
-                            </select>
                         </div>
                         <div class="form-group">
                             <label>&nbsp;</label>
@@ -88,16 +81,14 @@
                         <thead>
                             <tr>
                                 <th>Item</th>
-                                <th>Tomador</th>
+                                <th>Titular</th>
                                 <th>NIF</th>
-                                <th>Data Retirada</th>
-                                <th>Qtd. Retirada</th>
-                                <th>Qtd. Devolvida</th>
-                                <th>Status</th>
+                                <th>Data de Retirada</th>
+                                <th>Quantidade</th>
                             </tr>
                         </thead>
                         <tbody id="loans-list">
-                            <tr><td colspan="7" class="empty-state">Carregando...</td></tr>
+                            <tr><td colspan="5" class="empty-state">Carregando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -106,8 +97,12 @@
         </div>
     </div>
 
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
+
     <div id="toast" class="toast"></div>
     <script src="../js/config.js"></script>
     <script src="../js/admin-loans.js"></script>
+    <script src="../js/sidebar.js"></script>
 </body>
 </html>

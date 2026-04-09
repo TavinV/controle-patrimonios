@@ -12,6 +12,7 @@ const { initializeDatabase } = require('./scripts/initDb');
 const authRoutes = require('./routes/auth');
 const itemRoutes = require('./routes/items');
 const loanRoutes = require('./routes/loans');
+const peopleRoutes = require('./routes/people');
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/auth', authRoutes);
 app.use('/items', itemRoutes);
 app.use('/loans', loanRoutes);
+app.use('/people', peopleRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
