@@ -53,48 +53,9 @@ const authController = require('../controllers/authController');
 router.post('/login', authController.login);
 
 /**
- * @swagger
- * /auth/setup:
- *   post:
- *     summary: Criar primeiro administrador (TEMPORÁRIO — remover em produção)
- *     tags: [Auth]
- *     security: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required: [username, password]
- *             properties:
- *               username:
- *                 type: string
- *                 example: admin
- *               password:
- *                 type: string
- *                 example: senha123
- *     responses:
- *       201:
- *         description: Admin criado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Admin criado com sucesso
- *                 id:
- *                   type: integer
- *                   example: 1
- *       409:
- *         description: Username já existe
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Error'
+ * @deprecated Admin é criado automaticamente na inicialização com credenciais do .env
+ * Mantido apenas para referência histórica
  */
-// TODO: remover esta rota em produção
-router.post('/setup', authController.setup);
+// router.post('/setup', authController.setup);
 
 module.exports = router;
