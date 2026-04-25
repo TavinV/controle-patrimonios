@@ -63,8 +63,8 @@ async function handleAddPerson(e) {
     const nif  = document.getElementById('person-nif').value.trim();
     const name = document.getElementById('person-name').value.trim();
 
-    if (!/^\d{9}$/.test(nif)) {
-        toast('NIF deve ter 9 dígitos numéricos', 'error');
+    if (!/^\d{1,20}$/.test(nif)) {
+        toast('NIF deve ter entre 1 e 20 dígitos numéricos', 'error');
         return;
     }
 
@@ -102,8 +102,8 @@ async function handleEditPerson(e) {
     const nif  = document.getElementById('edit-person-nif').value.trim();
     const name = document.getElementById('edit-person-name').value.trim();
 
-    if (!/^\d{9}$/.test(nif)) {
-        toast('NIF deve ter 9 dígitos numéricos', 'error');
+    if (!/^\d{1,20}$/.test(nif)) {
+        toast('NIF deve ter entre 1 e 20 dígitos numéricos', 'error');
         return;
     }
 

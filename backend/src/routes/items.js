@@ -3,6 +3,10 @@ const router = express.Router();
 const auth = require('../middlewares/auth');
 const { validateBody } = require('../middlewares/validate');
 const itemController = require('../controllers/itemController');
+const multer = require('multer');
+
+// Configure multer for file uploads
+const upload = multer({ storage: multer.memoryStorage() });
 
 /**
  * @swagger
@@ -287,5 +291,95 @@ router.put('/:id', auth, itemController.update);
  *               $ref: '#/components/schemas/Error'
  */
 router.delete('/:id', auth, itemController.remove);
+
+/**
+ * @swagger
+ * /items/template/download:
+ *   get:
+ *     summary: Descarregar template Excel para importação de itens
+ *     tags: [Items]
+ *     responses:
+ *       200:
+ *         description: Arquivo template em formato Excel
+ *         content:
+ *           application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       401:
+ *         description: Token não fornecido ou inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/template/download', auth, itemController.getTemplate);
+
+/**
+ * @swagger
+ * /items/import:
+ *   post:
+ *     summary: Importar itens de arquivo Excel
+ *     tags: [Items]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required: [file]
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: Arquivo Excel (.xlsx) com os itens
+ *     responses:
+ *       200:
+ *         description: Importação concluída
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Importação concluída
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     success:
+ *                       type: integer
+ *                       description: Número de itens importados com sucesso
+ *                       example: 5
+ *                     failed:
+ *                       type: integer
+ *                       description: Número de itens com erro
+ *                       example: 1
+ *                     errors:
+ *                       type: array
+ *                       description: Lista de erros encontrados
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           row:
+ *                             type: integer
+ *                             description: Número da linha no Excel
+ *                           error:
+ *                             type: string
+ *                             description: Mensagem de erro
+ *       400:
+ *         description: Arquivo inválido ou vazio
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Token não fornecido ou inválido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/import', auth, upload.single('file'), itemController.importFromExcel);
 
 module.exports = router;

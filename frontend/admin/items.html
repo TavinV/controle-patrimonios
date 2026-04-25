@@ -69,7 +69,11 @@
                 <!-- Add Item Panel -->
                 <div class="section-bar">
                     <span class="section-title">Itens Cadastrados</span>
-                    <button class="btn btn-primary btn-sm" onclick="togglePanel()"><i class="fas fa-plus"></i> Novo Item</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="downloadTemplate()" title="Descarregar template Excel para importação"><i class="fas fa-download"></i> Template</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openImportModal()" title="Importar itens de arquivo Excel"><i class="fas fa-upload"></i> Importar</button>
+                        <button class="btn btn-primary btn-sm" onclick="togglePanel()"><i class="fas fa-plus"></i> Novo Item</button>
+                    </div>
                 </div>
 
                 <div class="panel" id="add-panel">
@@ -165,6 +169,30 @@
             <div class="modal-actions">
                 <button class="btn btn-ghost" onclick="document.getElementById('delete-modal').style.display='none'">Cancelar</button>
                 <button class="btn btn-danger" id="confirm-delete-btn"><i class="fas fa-trash"></i> Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de importação -->
+    <div id="import-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-box">
+            <h3 class="modal-title"><i class="fas fa-upload" style="color:var(--primary)"></i> Importar Itens</h3>
+            <p style="color:var(--text-muted); margin-bottom:16px;">Selecione um arquivo Excel (.xlsx) para importar itens em lote.</p>
+            <form id="import-form">
+                <div class="form-group">
+                    <label for="import-file">Arquivo Excel</label>
+                    <input type="file" id="import-file" accept=".xlsx,.xls" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" onclick="closeImportModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="import-submit-btn"><i class="fas fa-upload"></i> Importar</button>
+                </div>
+            </form>
+            <div id="import-result" style="display:none; margin-top:16px; padding:12px; border-radius:4px; background:var(--bg); border-left:4px solid var(--success);">
+                <p style="font-weight:600; margin-bottom:8px;">Resultado da Importação</p>
+                <p><span style="color:var(--success); font-weight:600;" id="import-success-count">0</span> itens importados com sucesso</p>
+                <p id="import-errors-text" style="display:none;"><span style="color:var(--danger); font-weight:600;" id="import-failed-count">0</span> itens com erro</p>
+                <div id="import-errors-list" style="display:none; margin-top:8px; max-height:200px; overflow-y:auto; font-size:0.85rem;"></div>
             </div>
         </div>
     </div>

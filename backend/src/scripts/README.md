@@ -5,34 +5,68 @@ Pasta contendo scripts de inicialização e migração do banco de dados.
 ## Arquivos
 
 ### `init_db.sql`
+
 Script SQL que cria o banco de dados, tabelas e triggers automaticamente.
 
 **Conteúdo:**
+
 - CREATE DATABASE inventory_db (se não existir)
 - Tabelas: admin_users, items, loans, loan_returns
 - Triggers: trg_after_loan_withdraw, trg_after_loan_return
 - Índices para performance
 
 **Uso manual:**
+
 ```bash
 mysql -h 127.0.0.1 -u root -p < src/scripts/init_db.sql
 ```
 
 ### `initDb.js`
+
 Script Node.js que executa `init_db.sql` automaticamente.
 
 **Ativado automaticamente:**
+
 - Chamado ao iniciar o servidor (`npm start`)
 - Cria banco de dados e tabelas se não existirem
 - Sem necessidade de execução manual em produção
 
 ### `migrate_cpf_to_nif.sql`
+
 Script de migração que renomeia a coluna `borrower_cpf` para `borrower_nif`.
 
 **Uso manual (se necessário):**
+
 ```bash
 mysql -h 127.0.0.1 -u root -p inventory_db < src/scripts/migrate_cpf_to_nif.sql
 ```
+
+### `migrate_nif_to_varchar.sql`
+
+Script de migração que altera NIF de CHAR(9) para VARCHAR(20), permitindo NIFs de 1 a 20 dígitos.
+
+**Uso manual (se necessário):**
+
+```bash
+mysql -h 127.0.0.1 -u root -p inventory_db < src/scripts/migrate_nif_to_varchar.sql
+```
+
+### `generateTemplate.js`
+
+Script Node.js que gera o arquivo `template_items.xlsx` para importação de itens.
+
+**Uso:**
+
+```bash
+node src/scripts/generateTemplate.js
+```
+
+Cria `template_items.xlsx` na raiz do backend com as colunas:
+
+- `name`: Nome do item (obrigatório)
+- `location`: Localização do item (obrigatório)
+- `quantity_total`: Quantidade total (obrigatório)
+- `quantity_available`: Quantidade disponível (opcional, padrão = quantity_total)
 
 ## Fluxo de Inicialização
 

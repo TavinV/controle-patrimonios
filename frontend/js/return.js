@@ -9,8 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function searchLoans() {
     const nif = document.getElementById('search-nif').value.trim();
-    if (!/^\d{9}$/.test(nif)) {
-        toast('NIF deve conter exatamente 9 dígitos numéricos', 'error');
+    if (!/^\d{1,20}$/.test(nif)) {
+        toast('NIF deve conter entre 1 e 20 dígitos numéricos', 'error');
         return;
     }
 

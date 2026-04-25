@@ -4,9 +4,9 @@ const withdraw = async (req, res, next) => {
   try {
     const { item_id, borrower_name, borrower_nif, quantity } = req.body;
 
-    // Validate NIF (9 digits)
-    if (!/^\d{9}$/.test(borrower_nif)) {
-      return res.status(400).json({ error: 'NIF deve conter exatamente 9 dígitos numéricos' });
+    // Validate NIF (1-20 digits)
+    if (!/^\d{1,20}$/.test(borrower_nif)) {
+      return res.status(400).json({ error: 'NIF deve conter entre 1 e 20 dígitos numéricos' });
     }
 
     // Validate quantity

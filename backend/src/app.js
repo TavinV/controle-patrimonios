@@ -17,7 +17,13 @@ const peopleRoutes = require('./routes/people');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+// Custom middleware to handle JSON parsing but skip multipart/form-data
+app.use((req, res, next) => {
+  if (req.headers['content-type'] && req.headers['content-type'].includes('multipart/form-data')) {
+    return next();
+  }
+  express.json()(req, res, next);
+});
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 

@@ -39,17 +39,21 @@ const findByNif = async (nif) => {
 };
 
 const create = async ({ nif, name }) => {
+  // Sanitize and validate NIF length
+  const sanitizedNif = String(nif).trim().substring(0, 20);
   const [result] = await pool.query(
     'INSERT INTO people (nif, name) VALUES (?, ?)',
-    [nif, name.trim()]
+    [sanitizedNif, name.trim()]
   );
   return result;
 };
 
 const update = async (id, { nif, name }) => {
+  // Sanitize and validate NIF length
+  const sanitizedNif = String(nif).trim().substring(0, 20);
   const [result] = await pool.query(
     'UPDATE people SET nif = ?, name = ? WHERE id = ?',
-    [nif, name.trim(), id]
+    [sanitizedNif, name.trim(), id]
   );
   return result;
 };

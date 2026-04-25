@@ -8,15 +8,24 @@ let selectedQty  = 1;
 // ===================== INIT =====================
 document.addEventListener('DOMContentLoaded', () => {
     loadAvailableItems();
+
+    // Suporte a teclado físico na etapa de NIF
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('step-1').style.display === 'none') return;
+        if (e.key >= '0' && e.key <= '9') { nifPress(e.key); }
+        else if (e.key === 'Backspace') { e.preventDefault(); nifBackspace(); }
+        else if (e.key === 'Escape') { nifClear(); }
+        else if (e.key === 'Enter' && document.getElementById('nif-next-btn').style.display !== 'none') { goToStep2(); }
+    });
 });
 
 // ===================== STEP 1: NIF PAD =====================
 function nifPress(digit) {
-    if (nifValue.length >= 9) return;
+    if (nifValue.length >= 20) return;
     nifValue += digit;
     updateNifDisplay();
     clearNifFeedback();
-    if (nifValue.length === 9) lookupNif();
+    if (nifValue.length > 0) checkNifValid();
 }
 
 function nifBackspace() {
@@ -35,14 +44,18 @@ function nifClear() {
 }
 
 function updateNifDisplay() {
-    const container = document.getElementById('nif-display');
-    container.innerHTML = '';
-    for (let i = 0; i < 9; i++) {
-        const cell = document.createElement('span');
-        cell.className = 'nif-cell' + (i < nifValue.length ? ' nif-cell--filled' : '');
-        cell.textContent = i < nifValue.length ? nifValue[i] : '—';
-        container.appendChild(cell);
+    const el = document.getElementById('nif-text');
+    if (nifValue.length === 0) {
+        el.textContent = '_ _ _';
+        el.classList.add('nif-text--empty');
+    } else {
+        el.textContent = nifValue;
+        el.classList.remove('nif-text--empty');
     }
+}
+
+function checkNifValid() {
+    if (nifValue.length >= 1 && /^\d{1,20}$/.test(nifValue)) lookupNif();
 }
 
 async function lookupNif() {

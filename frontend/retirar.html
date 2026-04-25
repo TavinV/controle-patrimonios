@@ -27,38 +27,48 @@
         </div>
 
         <!-- STEP 1: NIF -->
-        <section class="kiosk-step-panel" id="step-1">
-            <h2 class="kiosk-title">Introduza o seu NIF</h2>
-            <p class="kiosk-subtitle">Toque nos números para inserir o NIF de 9 dígitos</p>
+        <section class="kiosk-step-panel nif-step-panel" id="step-1">
+            <div class="nif-step-layout">
 
-            <div class="nif-display" id="nif-display">
-                <span id="nif-dots">_ _ _ _ _ _ _ _ _</span>
+                <!-- Coluna esquerda: info + display + feedback -->
+                <div class="nif-info-col">
+                    <div style="text-align:center;">
+                        <h2 class="kiosk-title">Introduza o seu NIF</h2>
+                        <p class="kiosk-subtitle" style="margin-top:6px;">Toque nos números ou use o teclado</p>
+                    </div>
+
+                    <div class="nif-display" id="nif-display">
+                        <span class="nif-text nif-text--empty" id="nif-text">_ _ _</span>
+                    </div>
+
+                    <div id="nif-person-preview" class="kiosk-person-preview" style="display:none">
+                        <i class="fas fa-circle-check" style="color:var(--success)"></i>
+                        <span id="nif-person-name"></span>
+                    </div>
+                    <div id="nif-error" class="kiosk-error-msg" style="display:none"></div>
+
+                    <button class="kiosk-btn-primary" id="nif-next-btn" style="display:none" onclick="goToStep2()">
+                        Continuar <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Coluna direita: numpad -->
+                <div class="numpad">
+                    <button class="numpad-key" onclick="nifPress('1')">1</button>
+                    <button class="numpad-key" onclick="nifPress('2')">2</button>
+                    <button class="numpad-key" onclick="nifPress('3')">3</button>
+                    <button class="numpad-key" onclick="nifPress('4')">4</button>
+                    <button class="numpad-key" onclick="nifPress('5')">5</button>
+                    <button class="numpad-key" onclick="nifPress('6')">6</button>
+                    <button class="numpad-key" onclick="nifPress('7')">7</button>
+                    <button class="numpad-key" onclick="nifPress('8')">8</button>
+                    <button class="numpad-key" onclick="nifPress('9')">9</button>
+                    <button class="numpad-key numpad-clear" onclick="nifClear()"><i class="fas fa-xmark"></i></button>
+                    <button class="numpad-key" onclick="nifPress('0')">0</button>
+                    <button class="numpad-key numpad-back" onclick="nifBackspace()"><i class="fas fa-delete-left"></i></button>
+                </div>
+
             </div>
-
-            <div class="numpad">
-                <button class="numpad-key" onclick="nifPress('1')">1</button>
-                <button class="numpad-key" onclick="nifPress('2')">2</button>
-                <button class="numpad-key" onclick="nifPress('3')">3</button>
-                <button class="numpad-key" onclick="nifPress('4')">4</button>
-                <button class="numpad-key" onclick="nifPress('5')">5</button>
-                <button class="numpad-key" onclick="nifPress('6')">6</button>
-                <button class="numpad-key" onclick="nifPress('7')">7</button>
-                <button class="numpad-key" onclick="nifPress('8')">8</button>
-                <button class="numpad-key" onclick="nifPress('9')">9</button>
-                <button class="numpad-key numpad-clear" onclick="nifClear()"><i class="fas fa-xmark"></i></button>
-                <button class="numpad-key" onclick="nifPress('0')">0</button>
-                <button class="numpad-key numpad-back" onclick="nifBackspace()"><i class="fas fa-delete-left"></i></button>
-            </div>
-
-            <div id="nif-person-preview" class="kiosk-person-preview" style="display:none">
-                <i class="fas fa-circle-check" style="color:var(--success)"></i>
-                <span id="nif-person-name"></span>
-            </div>
-            <div id="nif-error" class="kiosk-error-msg" style="display:none"></div>
-
-            <button class="kiosk-btn-primary" id="nif-next-btn" style="display:none" onclick="goToStep2()">
-                Continuar <i class="fas fa-arrow-right"></i>
-            </button>
         </section>
 
         <!-- STEP 2: Item selection -->

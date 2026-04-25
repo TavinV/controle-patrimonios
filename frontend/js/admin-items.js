@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-item-form').addEventListener('submit', handleAddItem);
     document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
     document.getElementById('edit-item-form').addEventListener('submit', handleEditItem);
+    document.getElementById('import-form').addEventListener('submit', handleImport);
 });
 
 function togglePanel() {
@@ -201,5 +202,113 @@ async function handleEditItem(e) {
         toast('Erro de conexão', 'error');
     } finally {
         btn.disabled = false;
+    }
+}
+
+async function downloadTemplate() {
+    try {
+        const res = await fetch(`${API_URL}/items/template/download`, { 
+            headers: authHeaders()
+        });
+        
+        if (!res.ok) {
+            const data = await res.json();
+            toast(data.error || 'Erro ao descarregar template', 'error');
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'template_items.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        
+        toast('Template descarregado com sucesso', 'success');
+    } catch {
+        toast('Erro ao descarregar template', 'error');
+    }
+}
+
+function openImportModal() {
+    document.getElementById('import-modal').style.display = 'flex';
+    document.getElementById('import-form').reset();
+    document.getElementById('import-result').style.display = 'none';
+}
+
+function closeImportModal() {
+    document.getElementById('import-modal').style.display = 'none';
+    document.getElementById('import-form').reset();
+    document.getElementById('import-result').style.display = 'none';
+}
+
+async function handleImport(e) {
+    e.preventDefault();
+    
+    const fileInput = document.getElementById('import-file');
+    const file = fileInput.files[0];
+    
+    if (!file) {
+        toast('Selecione um arquivo', 'error');
+        return;
+    }
+
+    const btn = document.getElementById('import-submit-btn');
+    btn.disabled = true;
+    btn.innerText = 'Importando...';
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const res = await fetch(`${API_URL}/items/import`, {
+            method: 'POST',
+            headers: authHeadersForFormData(),
+            body: formData
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            document.getElementById('import-result').style.display = 'block';
+            document.getElementById('import-success-count').innerText = data.data.success || 0;
+            
+            if (data.data.failed > 0) {
+                document.getElementById('import-failed-count').innerText = data.data.failed;
+                document.getElementById('import-errors-text').style.display = 'block';
+                
+                const errorsList = document.getElementById('import-errors-list');
+                errorsList.innerHTML = '';
+                data.data.errors.forEach(err => {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.style.cssText = 'padding:8px; margin-bottom:4px; background:var(--bg2); border-radius:2px; border-left:2px solid var(--danger);';
+                    errorDiv.innerHTML = `<strong>Linha ${err.row}:</strong> ${escHtml(err.error)}`;
+                    errorsList.appendChild(errorDiv);
+                });
+                errorsList.style.display = 'block';
+            } else {
+                document.getElementById('import-errors-text').style.display = 'none';
+                document.getElementById('import-errors-list').style.display = 'none';
+            }
+
+            if (data.data.success > 0) {
+                setTimeout(() => {
+                    closeImportModal();
+                    loadItems(1);
+                    loadStats();
+                    toast(`${data.data.success} item(s) importado(s) com sucesso!`, 'success');
+                }, 1500);
+            }
+        } else {
+            toast(data.error || 'Erro ao importar arquivo', 'error');
+        }
+    } catch {
+        toast('Erro de conexão', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerText = 'Importar';
     }
 }

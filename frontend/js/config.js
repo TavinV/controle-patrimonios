@@ -11,6 +11,12 @@ function authHeaders() {
     };
 }
 
+function authHeadersForFormData() {
+    return {
+        'Authorization': `Bearer ${getToken()}`
+    };
+}
+
 function requireAuth() {
     if (!getToken()) {
         window.location.href = '../login.html';

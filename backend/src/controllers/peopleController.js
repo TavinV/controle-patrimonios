@@ -1,6 +1,6 @@
 const peopleService = require('../services/peopleService');
 
-const NIFRegex = /^\d{9}$/;
+const NIFRegex = /^\d{1,20}$/;
 
 const list = async (req, res, next) => {
   try {
@@ -16,7 +16,7 @@ const lookup = async (req, res, next) => {
   try {
     const { nif } = req.query;
     if (!nif || !NIFRegex.test(nif)) {
-      return res.status(400).json({ error: 'NIF deve conter exactamente 9 dígitos numéricos' });
+      return res.status(400).json({ error: 'NIF deve conter entre 1 e 20 dígitos numéricos' });
     }
     const person = await peopleService.findByNif(nif);
     if (!person) return res.status(404).json({ error: 'NIF não registado' });
@@ -28,7 +28,7 @@ const create = async (req, res, next) => {
   try {
     const { nif, name } = req.body;
     if (!NIFRegex.test(nif)) {
-      return res.status(400).json({ error: 'NIF deve conter exactamente 9 dígitos numéricos' });
+      return res.status(400).json({ error: 'NIF deve conter entre 1 e 20 dígitos numéricos' });
     }
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Nome é obrigatório' });
@@ -48,7 +48,7 @@ const update = async (req, res, next) => {
     const { id } = req.params;
     const { nif, name } = req.body;
     if (!NIFRegex.test(nif)) {
-      return res.status(400).json({ error: 'NIF deve conter exactamente 9 dígitos numéricos' });
+      return res.status(400).json({ error: 'NIF deve conter entre 1 e 20 dígitos numéricos' });
     }
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Nome é obrigatório' });

@@ -61,11 +61,80 @@ const remove = async (req, res, next) => {
     await itemService.remove(req.params.id);
     res.status(200).json({ message: 'Item removido' });
   } catch (err) {
-    if (err.message === 'Item possui empréstimos em aberto') {
-      return res.status(err.status || 500).json({ error: err.message });
-    }
     next(err);
   }
 };
 
-module.exports = { list, getOne, create, update, remove };
+const importFromExcel = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Arquivo não fornecido' });
+    }
+
+    const XLSX = require('xlsx');
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    
+    if (!sheetName) {
+      return res.status(400).json({ error: 'Arquivo Excel vazio' });
+    }
+
+    const worksheet = workbook.Sheets[sheetName];
+    const items = XLSX.utils.sheet_to_json(worksheet);
+
+    if (items.length === 0) {
+      return res.status(400).json({ error: 'Nenhuma linha de dados encontrada' });
+    }
+
+    const result = await itemService.importFromExcel(items);
+    res.status(200).json({
+      message: 'Importação concluída',
+      data: result
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getTemplate = async (req, res, next) => {
+  try {
+    const XLSX = require('xlsx');
+    
+    // Create a new workbook
+    const workbook = XLSX.utils.book_new();
+    
+    // Create template data with example row
+    const templateData = [
+      {
+        name: '[EXEMPLO, REMOVER ESSA LINHA] Nome do Item',
+        location: '[EXEMPLO, REMOVER ESSA LINHA] Localização',
+        quantity_total: '[EXEMPLO, REMOVER ESSA LINHA] Quantidade Total',
+        quantity_available: '[EXEMPLO, REMOVER ESSA LINHA] Quantidade Disponível (opcional, se vazio será igual a Quantidade Total)'
+      }
+    ];
+
+    // Create worksheet
+    const worksheet = XLSX.utils.json_to_sheet(templateData);
+    
+    // Set column widths
+    worksheet['!cols'] = [
+      { wch: 30 },  // name
+      { wch: 20 },  // location
+      { wch: 20 },  // quantity_total
+      { wch: 20 }   // quantity_available
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Items');
+
+    // Send file
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="template_items.xlsx"');
+    
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'buffer' });
+    res.send(buffer);
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { list, getOne, create, update, remove, importFromExcel, getTemplate };

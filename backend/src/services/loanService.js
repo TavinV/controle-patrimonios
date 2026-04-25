@@ -19,9 +19,12 @@ const withdraw = async ({ item_id, borrower_name, borrower_nif, quantity }) => {
     throw err;
   }
 
+  // Sanitize NIF to max 20 chars
+  const sanitizedNif = String(borrower_nif).trim().substring(0, 20);
+
   const [result] = await pool.query(
     'INSERT INTO loans (item_id, borrower_name, borrower_nif, quantity_withdrawn) VALUES (?, ?, ?, ?)',
-    [item_id, borrower_name, borrower_nif, quantity]
+    [item_id, borrower_name, sanitizedNif, quantity]
   );
 
   return result;

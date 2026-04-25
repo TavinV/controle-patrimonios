@@ -575,33 +575,56 @@ tbody tr:hover { background: var(--bg); transition: background .15s; }
     background: rgba(0,0,0,.3);
     border: 2px solid rgba(255,255,255,.15);
     border-radius: 16px;
-    padding: 12px 8px;
+    padding: 18px 24px;
     width: 100%;
-    max-width: 360px;
-    display: flex;
-    gap: 3px;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden;
-    box-sizing: border-box;
-}
-.nif-cell {
-    flex: 1 1 0;
-    min-width: 0;
-    height: 44px;
+    min-height: 72px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-bottom: 2px solid rgba(255,255,255,.25);
-    font-size: clamp(0.9rem, 2.8vw, 1.6rem);
-    font-weight: 700;
-    color: rgba(255,255,255,.3);
-    font-family: monospace;
-    transition: border-color .15s, color .15s;
+    transition: border-color .2s;
 }
-.nif-cell--filled {
+.nif-text {
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 800;
     color: #fff;
-    border-bottom-color: var(--primary);
+    font-family: monospace;
+    letter-spacing: 0.12em;
+    word-break: break-all;
+    text-align: center;
+    line-height: 1.2;
+}
+.nif-text--empty {
+    color: rgba(255,255,255,.25);
+    font-size: 1.8rem;
+    letter-spacing: 0.3em;
+}
+
+/* NIF Step two-column layout */
+.nif-step-panel {
+    max-width: 760px !important;
+}
+.nif-step-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: center;
+    width: 100%;
+}
+.nif-info-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    .nif-step-panel { max-width: 420px !important; }
+    .nif-step-layout {
+        grid-template-columns: 1fr;
+    }
+    .nif-info-col { order: 1; }
+    .nif-step-layout .numpad { order: 2; }
+    .numpad-key { max-height: 72px; font-size: 1.35rem; border-radius: 12px; }
 }
 
 /* Numpad */

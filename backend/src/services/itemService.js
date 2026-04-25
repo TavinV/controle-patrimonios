@@ -115,19 +115,91 @@ const update = async (id, updates) => {
 };
 
 const remove = async (id) => {
-  const [rows] = await pool.query(
-    "SELECT COUNT(*) as total FROM loans WHERE item_id = ? AND status = 'open'",
-    [id]
-  );
-
-  if (rows[0].total > 0) {
-    const err = new Error('Item possui empréstimos em aberto');
-    err.status = 409;
-    throw err;
-  }
-
   const [result] = await pool.query('DELETE FROM items WHERE id = ?', [id]);
   return result;
 };
 
-module.exports = { findAll, findById, create, update, remove };
+const importFromExcel = async (items) => {
+  const results = {
+    success: 0,
+    failed: 0,
+    errors: []
+  };
+
+  for (let i = 0; i < items.length; i++) {
+    const row = items[i];
+    const rowNumber = i + 2; // Excel row number (1-based, +1 for header)
+
+    try {
+      // Validate required fields
+      if (!row.name || !row.name.trim()) {
+        results.failed++;
+        results.errors.push({
+          row: rowNumber,
+          error: 'Coluna "name" é obrigatória'
+        });
+        continue;
+      }
+
+      if (!row.location || !row.location.trim()) {
+        results.failed++;
+        results.errors.push({
+          row: rowNumber,
+          error: 'Coluna "location" é obrigatória'
+        });
+        continue;
+      }
+
+      if (row.quantity_total === undefined || row.quantity_total === '' || row.quantity_total === null) {
+        results.failed++;
+        results.errors.push({
+          row: rowNumber,
+          error: 'Coluna "quantity_total" é obrigatória'
+        });
+        continue;
+      }
+
+      const quantity_total = parseInt(row.quantity_total);
+      if (isNaN(quantity_total) || quantity_total < 1) {
+        results.failed++;
+        results.errors.push({
+          row: rowNumber,
+          error: 'quantity_total deve ser um número maior que zero'
+        });
+        continue;
+      }
+
+      // quantity_available defaults to quantity_total if not provided
+      let quantity_available = quantity_total;
+      if (row.quantity_available !== undefined && row.quantity_available !== '' && row.quantity_available !== null) {
+        quantity_available = parseInt(row.quantity_available);
+        if (isNaN(quantity_available) || quantity_available < 0 || quantity_available > quantity_total) {
+          results.failed++;
+          results.errors.push({
+            row: rowNumber,
+            error: 'quantity_available deve estar entre 0 e quantity_total'
+          });
+          continue;
+        }
+      }
+
+      // Insert item
+      await pool.query(
+        'INSERT INTO items (name, location, quantity_total, quantity_available) VALUES (?, ?, ?, ?)',
+        [row.name.trim(), row.location.trim(), quantity_total, quantity_available]
+      );
+
+      results.success++;
+    } catch (err) {
+      results.failed++;
+      results.errors.push({
+        row: rowNumber,
+        error: err.message || 'Erro ao processar linha'
+      });
+    }
+  }
+
+  return results;
+};
+
+module.exports = { findAll, findById, create, update, remove, importFromExcel };
